@@ -11,7 +11,7 @@ public class Main044Test {
     public void testShortestPath() {
         // テストケース1
         String input1 = "5 4\n1 2\n2 3\n3 4\n4 5";
-        assertEquals("0\n1\n2\n3\n-1\n", runMain044(input1));
+        assertEquals("0\n1\n2\n3\n4\n", runMain044(input1));
 
         // テストケース2
         String input2 = "4 3\n1 2\n2 3\n3 4";
