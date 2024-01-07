@@ -1,9 +1,6 @@
 package src.main.java.ABC333;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
 
 public class E_Takahashi_Quest {
     public static void main(String[] args) {
@@ -14,80 +11,59 @@ public class E_Takahashi_Quest {
         for (int i = 0; i < N; i++) {
             events[i] = new Event(scanner.nextInt(), scanner.nextInt());
         }
-        int firstPointer = 0;
-        boolean canDefeatAllMonsters = true;
+        ArrayList<Event>[] potionList = new ArrayList[N];
+        boolean canDefeat = true;
         for (int i = 0; i < N; i++) {
+            //Monsterが現れた場合
             if(events[i].getEventType() == 2){
-                boolean canDefeat = false;
-                int usedCategory = 0;
-                for (int j = firstPointer; j < i; j++) {
-                    Event targetEvent = events[j];
-                    if(targetEvent.getCategory() == events[i].getCategory() && !canDefeat &&  targetEvent.getEventType()==1  && !targetEvent.isUsed() && targetEvent.canUse()){
-                        targetEvent.setUsed(true);
-                        targetEvent.prohibitToUse();
-                        canDefeat = true;
-                        usedCategory = targetEvent.getCategory();
-                        if(firstPointer == j){
-                            for (int k = j+1; k < i; k++) {
-                                if(events[k].canUse){
-                                    firstPointer = k;
-                                    break;
-                                }
-                            }
-                        }
-                        continue;
-                    }
-                    if(targetEvent.getEventType() == 1 && !targetEvent.isUsed() && targetEvent.getCategory() == usedCategory){
-                        targetEvent.prohibitToUse();
-                        if(firstPointer == j){
-                            firstPointer++;
-                        }
-                    }
-
-                }
-                if(!canDefeat){
-                    canDefeatAllMonsters = false;
+                //倒せなかった場合
+                if(potionList[events[i].getCategory()] == null || potionList[events[i].getCategory()].isEmpty()){
+                    canDefeat = false;
                     break;
                 }
+                //倒せる場合
+                potionList[events[i].getCategory()].remove(potionList[events[i].getCategory()].size()-1).setUsed(true);
+                continue;
             }
+            //Potionが現れた場合
+            if(potionList[events[i].getCategory()] == null){
+                potionList[events[i].getCategory()] = new ArrayList<>();
+            }
+            potionList[events[i].getCategory()].add(events[i]);
         }
-        int maxPotionCnt = 0;
+        StringBuilder action = new StringBuilder();
+        StringBuilder answer = new StringBuilder();
         int potionCnt = 0;
-        StringBuilder ansStringAction = new StringBuilder();
-        StringBuilder ansString = new StringBuilder();
-        if(canDefeatAllMonsters){
+        int maxPotionCnt = 0;
+        if(canDefeat){
             for (int i = 0; i < N; i++) {
-                if(events[i].getEventType() == 2){
+                if (events[i].getEventType() == 2){
                     potionCnt--;
                     continue;
                 }
                 if(events[i].isUsed()){
+                    action.append(" 1");
                     potionCnt++;
-                    ansStringAction.append(" 1");
                     maxPotionCnt = Math.max(maxPotionCnt, potionCnt);
-                }else{
-                    ansStringAction.append(" 0");
+                    continue;
                 }
+                action.append(" 0");
             }
-            ansString.append(maxPotionCnt).append("\n");
-            ansStringAction.delete(0,1);
-            ansString.append(ansStringAction);
-
-        }else{
-            ansString.append(-1);
+            action.delete(0,1);
+            answer.append(maxPotionCnt).append("\n").append(action);
+        }else {
+            answer.append(-1);
         }
-        System.out.println(ansString);
+        System.out.println(answer);
     }
     public static class Event{
         private final int eventType;
         private final int category;
         private boolean used;
-        private boolean canUse;
-        public Event(int eventType, int category){
+            public Event(int eventType, int category){
             this.eventType = eventType;
             this.category = category;
             this.used = false;
-            this.canUse = true;
         }
 
         public void setUsed(boolean used) {
@@ -95,12 +71,6 @@ public class E_Takahashi_Quest {
         }
         public boolean isUsed(){
             return used;
-        }
-        public void prohibitToUse(){
-            this.canUse = false;
-        }
-        public boolean canUse(){
-            return canUse;
         }
         public int getCategory() {
             return category;
