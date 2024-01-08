@@ -10,10 +10,6 @@ public class D_Swapping_Puzzle {
         int W = scanner.nextInt();
         int[][] A = new int[H][W];
         int[][] B = new int[H][W];
-        ArrayList<Integer>[] ACol = new ArrayList[W];
-        ArrayList<Integer>[] BCol = new ArrayList[W];
-        ArrayList<Integer>[] ARow = new ArrayList[H];
-        ArrayList<Integer>[] BRow = new ArrayList[H];
 
         //Aの読み込み
         for (int i = 0; i < H; i++) {
@@ -21,133 +17,98 @@ public class D_Swapping_Puzzle {
                 A[i][j] = scanner.nextInt();
             }
         }
-
         //Bの読み込み
         for (int i = 0; i < H; i++) {
             for (int j = 0; j < W ; j++) {
                 B[i][j] = scanner.nextInt();
             }
         }
-
+        int[] P = new int[H];
         for (int i = 0; i < H; i++) {
-            for (int j = 0; j < W; j++) {
-                if(ACol[j] == null){
-                    ACol[j] = new ArrayList<Integer>();
+            P[i] = i;
+        }
+        List<int[]> permutationsP = Helper.generatePermutations(P);
+
+        int[] Q = new int[W];
+        for (int i = 0; i < W; i++) {
+            Q[i] = i;
+        }
+        List<int[]> permutationsQ = Helper.generatePermutations(Q);
+        int minOperationCnt = Integer.MAX_VALUE;
+        int[] ansP;
+        int[] ansQ;
+        for (int[] permutationP : permutationsP) {
+            for (int[] permutationQ : permutationsQ) {
+                int[][] C = new int[H][W];
+                for (int i = 0; i < H; i++) {
+                    for (int j = 0; j < W; j++) {
+                        C[i][j] = A[permutationP[i]][permutationQ[j]];
+                    }
                 }
-                if(ARow[i] == null){
-                    ARow[i] = new ArrayList<Integer>();
+                if(Helper.equals(C, B)){
+                    ansP = permutationP;
+                    ansQ = permutationQ;
+                    int inverseCntP;
+                    int inverseCntQ;
+                    inverseCntP = Helper.bubbleSortCnt(ansP);
+                    inverseCntQ = Helper.bubbleSortCnt(ansQ);
+                    int operationCnt = inverseCntP + inverseCntQ;
+                    minOperationCnt = Math.min(operationCnt,minOperationCnt);
                 }
-                ARow[i].add(A[i][j]);
-                ACol[j].add(A[i][j]);
             }
         }
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < W; j++) {
-                if(BCol[j] == null){
-                    BCol[j] = new ArrayList<Integer>();
-                }
-                if(BRow[i] == null){
-                    BRow[i] = new ArrayList<Integer>();
-                }
-                BRow[i].add(B[i][j]);
-                BCol[j].add(B[i][j]);
-            }
-        }
-        for (int i = 0; i < H; i++) {
-            Collections.sort(ARow[i]);
-            Collections.sort(BRow[i]);
-        }
-        for (int j = 0; j < W; j++) {
-            Collections.sort(ACol[j]);
-            Collections.sort(BCol[j]);
-        }
-        Set<ArrayList<Integer>> rowSetA = new HashSet<>(List.of(ACol));
-        Set<ArrayList<Integer>> rowSetB = new HashSet<>(List.of(BCol));
-        boolean isMatchRows = rowSetA.equals(rowSetB);
-
-
-        Set<ArrayList<Integer>> colSetA = new HashSet<>(List.of(ACol));
-        Set<ArrayList<Integer>> colSetB = new HashSet<>(List.of(BCol));
-        boolean isMatchCols = colSetA.equals(colSetB);
-
-        if(!isMatchRows || !isMatchCols) {
-            System.out.println("-1");
+        if(minOperationCnt == Integer.MAX_VALUE){
+            System.out.println(-1);
             return;
         }
-        ArrayList<Integer> targetARow = ARow[0];
-        ArrayList<Integer> targetACol = ACol[0];
-        int matchedBRowNum = 0;
-
-        for (int i = 0; i < H; i++) {
-            if(targetARow.equals(BRow[i])){
-                matchedBRowNum = i;
-                break;
-            }
-        }
-
-        ArrayList<Integer> orderRow = new ArrayList<>();
-        for (int i = 0; i < W; i++) {
-            for (int j = 0; j < W; j++) {
-                if(A[0][i] == B[matchedBRowNum][j] && !orderRow.contains(j)){
-                    orderRow.add(j);
-                }
-            }
-        }
-        int[][] Bnew = new int[H][W];
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < W; j++) {
-                int thisOrder = orderRow.get(j);
-                Bnew[i][thisOrder] = B[i][j];
-            }
-        }
-
-
-        ArrayList<Integer>[] BColNew = new ArrayList[W];
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < W; j++) {
-                if(BColNew[j] == null){
-                    BColNew[j] = new ArrayList<Integer>();
-                }
-                BColNew[j].add(Bnew[i][j]);
-            }
-        }
-        for (int j = 0; j < W; j++) {
-            Collections.sort(BColNew[j]);
-        }
-        int matchedBColNum = 0;
-        int operationCntRow = Helper.bubbleSortCnt(orderRow);
-        for (int i = 0; i < W; i++) {
-            if(targetACol.equals(BColNew[i])){
-                matchedBColNum = i;
-                break;
-            }
-        }
-        ArrayList<Integer> orderCol = new ArrayList<>();
-        for (int i = 0; i < H; i++) {
-            for (int j = 0; j < H; j++) {
-                if(A[i][0] == Bnew[j][matchedBColNum] && !orderCol.contains(j)){
-                    orderCol.add(j);
-                }
-            }
-
-        }
-        int operationCntCol = Helper.bubbleSortCnt(orderCol);
-        int operationCnt = operationCntRow + operationCntCol;
-        System.out.println(operationCnt);
+        System.out.println(minOperationCnt);
     }
     public static class Helper{
-        static int bubbleSortCnt(ArrayList<Integer>list){
+        public static List<int[]> generatePermutations(int[] array) {
+            List<int[]> result = new ArrayList<>();
+            generatePermutationsHelper(array, 0, result);
+            return result;
+        }
+
+        public static void generatePermutationsHelper(int[] array, int index, List<int[]> result) {
+            if (index == array.length - 1) {
+                result.add(Arrays.copyOf(array, array.length));
+            } else {
+                for (int i = index; i < array.length; i++) {
+                    swap(array, index, i);
+                    generatePermutationsHelper(array, index + 1, result);
+                    swap(array, index, i);
+                }
+            }
+        }
+
+        private static void swap(int[] array, int i, int j) {
+            int temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        static int bubbleSortCnt(int[] list){
             int cnt = 0;
-            for (int i = 0; i < list.size(); i++) {
-                for (int j = list.size()-1; j > i; j--) {
-                    if(list.get(j-1) > list.get(j)){
-                        Collections.swap(list, j-1, j);
+            for (int i = 0; i < list.length; i++) {
+                for (int j = list.length-1; j > i; j--) {
+                    if(list[j] < list[j-1]){
+                        int tmp = list[j];
+                        list[j] = list[j-1];
+                        list[j-1] = tmp;
                         cnt++;
                     }
                 }
             }
             return cnt;
 
+        }
+        static boolean equals(int[][] A, int[][] B){
+            for (int i = 0; i < A.length; i++) {
+                if(!Arrays.equals(A[i], B[i])){
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
