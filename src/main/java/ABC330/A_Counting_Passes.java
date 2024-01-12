@@ -1,8 +1,7 @@
 package src.main.java.ABC330;
-
 import java.util.Scanner;
 
-public class A_Counting_Passes {
+public class A_Counting_Passes{
     public static void main(String[] args) {
 
         Scanner scanner = new Scanner(System.in);
