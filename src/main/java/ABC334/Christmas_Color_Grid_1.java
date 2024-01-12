@@ -16,15 +16,37 @@ public class Christmas_Color_Grid_1 {
         }
         int patternCnt = 0;
         int sumConnectionGroup = 0;
+        Helper.setIncidentVertices(graph, H, W);
+        Helper.categorizeConnectionGroup(graph, H, W);
+        int groupCnt = Helper.getCategorizedConnectionGroupCnt(graph, H, W);
         for (int i = 0; i < H ; i++) {
             for (int j = 0; j < W; j++) {
                 if(graph[i][j].getSymbol() == '.'){
                     patternCnt++;
-                    graph[i][j].setSymbol('#');
-                    Helper.setIncidentVertices(graph, H, W);
-                    sumConnectionGroup += Helper.countConnectionGroup(graph, H, W);
-                    graph[i][j].setSymbol('.');
-                    Helper.resetAllVertices(graph, H, W);
+                    Set<Integer> uniqueGroupNums = new HashSet<>();
+                    if(i > 0){
+                        if(graph[i-1][j].getSymbol() == '#'){
+                            uniqueGroupNums.add(graph[i-1][j].getGroupNum());
+                        }
+                    }
+                    if(i < H-1){
+                        if(graph[i+1][j].getSymbol() == '#'){
+                            uniqueGroupNums.add(graph[i+1][j].getGroupNum());
+                        }
+                    }
+                    if(j > 0){
+                        if(graph[i][j-1].getSymbol() == '#'){
+                            uniqueGroupNums.add(graph[i][j-1].getGroupNum());
+                        }
+                    }
+                    if(j < W-1){
+                        if(graph[i][j+1].getSymbol() == '#'){
+                            uniqueGroupNums.add(graph[i][j+1].getGroupNum());
+                        }
+                    }
+                    int reductionCnt = uniqueGroupNums.size() - 1;
+                    int reducedGroupCnt = groupCnt - reductionCnt;
+                    sumConnectionGroup += reducedGroupCnt;
                 }
 
             }
@@ -39,11 +61,11 @@ public class Christmas_Color_Grid_1 {
         System.out.println(ans);
     }
     public static class Helper{
-        public static int countConnectionGroup(Vertex[][] graph, int H, int W) {
+        public static int categorizeConnectionGroup(Vertex[][] graph, int H, int W) {
             int groupCnt = 0;
             Set<Vertex> seenElements = new HashSet<>();
             Queue<Vertex> todoQueue = new LinkedList<>();
-
+            int groupCategory = 0;
             while(true){
                 outerLoop:
                 for (int i = 0; i < H; i++) {
@@ -51,6 +73,7 @@ public class Christmas_Color_Grid_1 {
                         if(graph[i][j].symbol == '#' && !graph[i][j].seen){
                             todoQueue.add(graph[i][j]);
                             groupCnt++;
+                            groupCategory++;
                             break outerLoop;
                         }
                     }
@@ -64,16 +87,26 @@ public class Christmas_Color_Grid_1 {
                         continue;
                     }
                     targetVertex.seen();
+                    targetVertex.setGroupNum(groupCategory);
                     if(targetVertex.incidentVertices != null){
                         for(Vertex incidentVertex : targetVertex.getIncidentVertices()){
                             if(incidentVertex.isSeen()){
                                 continue;
                             }
-                            //if(todoQueue.contains(incidentVertex)){
-                            //    continue;
-                            //}
+
                             todoQueue.add(incidentVertex);
                         }
+                    }
+                }
+            }
+            return groupCnt;
+        }
+        static int getCategorizedConnectionGroupCnt(Vertex[][] graph, int H, int W){
+            int groupCnt = 0;
+            for (int i = 0; i < H;  i++){
+                for (int j = 0; j < W; j++) {
+                    if (graph[i][j].groupNum > groupCnt) {
+                        groupCnt = graph[i][j].groupNum;
                     }
                 }
             }
@@ -133,21 +166,13 @@ public class Christmas_Color_Grid_1 {
     public static class Vertex{
         private char symbol;
         private boolean seen;
-        private final int col;
-        private final int row;
         private ArrayList<Vertex> incidentVertices;
+        private int groupNum;
         public Vertex(char symbol, int row, int col){
             this.symbol = symbol;
-            this.col = col;
-            this.row = row;
             seen = false;
             incidentVertices = new ArrayList<>();
-        }
-        public int getCol(){
-            return col;
-        }
-        public int getRow() {
-            return row;
+
         }
 
         public char getSymbol(){
@@ -156,7 +181,12 @@ public class Christmas_Color_Grid_1 {
         public void setSymbol(char symbol){
             this.symbol = symbol;
         }
-
+        public void setGroupNum(int groupNum){
+            this.groupNum = groupNum;
+        }
+        public int getGroupNum(){
+            return groupNum;
+        }
         public boolean isSeen() {
             return seen;
         }
