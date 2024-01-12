@@ -7,33 +7,15 @@ public class Main012_Red_Painting {
         Scanner scanner = new Scanner(System.in);
         int H = scanner.nextInt();
         int W = scanner.nextInt();
-        Node[][] nodes = new Node[H+1][W+1];
+        Node[][] nodes = new Node[H + 1][W + 1];
         for (int i = 1; i <= H; i++) {
             for (int j = 1; j <= W; j++) {
-                nodes[i][j] = new Node('w');
+                nodes[i][j] = new Node('w', (i - 1) * W + j);
             }
         }
-        for (int i = 0; i <= H ; i++) {
-            nodes[i][0] = new Node('w');
-        }
-        for (int j = 0; j <= W ; j++) {
-            nodes[0][j] = new Node('w');
-        }
-        for (int i = 0; i < H+1; i++) {
-            for (int j = 0; j < W+1; j++) {
-                if(i<H){
-                    nodes[i][j].addIncidentNode(nodes[i+1][j]);
-                    nodes[i+1][j].addIncidentNode(nodes[i][j]);
-                }
-                if(j<W){
-                    nodes[i][j].addIncidentNode(nodes[i][j+1]);
-                    nodes[i][j+1].addIncidentNode(nodes[i][j]);
-                }
-            }
-        }
+
         int Q = scanner.nextInt();
-        int groupNo = 1;
-        HashMap<Integer, ArrayList<Node>> groupMap = new HashMap<>();
+        UnionFind uf = new UnionFind(H * W + 1);
         StringBuilder ansStr = new StringBuilder();
         for (int i = 0; i < Q; i++) {
             int t = scanner.nextInt();
@@ -42,94 +24,97 @@ public class Main012_Red_Painting {
                 int c = scanner.nextInt();
                 Node targetNode = nodes[r][c];
                 targetNode.setColor('r');
-                ArrayList<Node> redNodeList = new ArrayList<>();
-                for (Node incidentNode : targetNode.getIncidentNodes()) {
+                ArrayList<Node> incidentNodes = new ArrayList<>();
+                if(r>1){
+                    incidentNodes.add(nodes[r-1][c]);
+                }
+                if(r<H){
+                    incidentNodes.add(nodes[r+1][c]);
+                }
+                if(c>1){
+                    incidentNodes.add(nodes[r][c-1]);
+                }
+                if(c<W){
+                    incidentNodes.add(nodes[r][c+1]);
+                }
+                if(incidentNodes.isEmpty()) {
+                    continue;
+                }
+                for (Node incidentNode : incidentNodes) {
                     if (incidentNode.getColor() == 'r') {
-                        redNodeList.add(incidentNode);
+                        uf.union(targetNode.getIndex(), incidentNode.getIndex());
                     }
                 }
-                if (redNodeList.isEmpty()) {
-                    targetNode.setGroupNo(groupNo);
-                    ArrayList<Node> nodeList = new ArrayList<>();
-                    nodeList.add(targetNode);
-                    groupMap.put(groupNo, nodeList);
-                    groupNo++;
+            } else {
+                int ra = scanner.nextInt();
+                int ca = scanner.nextInt();
+                int rb = scanner.nextInt();
+                int cb = scanner.nextInt();
+                if (nodes[ra][ca].getColor() == 'w' || nodes[rb][cb].getColor() == 'w' || !uf.connected(nodes[ra][ca].getIndex(), nodes[rb][cb].getIndex())) {
+                    ansStr.append("No").append("\n");
                 } else {
-                    Node firstRedNode = redNodeList.remove(0);
-                    int primaryGroupNo = firstRedNode.getGroupNo();
-                    targetNode.setGroupNo(primaryGroupNo);
-                    ArrayList<Node> primaryGroup = groupMap.get(primaryGroupNo);
-                    primaryGroup.add(targetNode);
-                    if(redNodeList.isEmpty()){
-                        continue;
-                    }
-                    for (Node redNode : redNodeList) {
-                        int groupNoToChange = redNode.getGroupNo();
-                        if (groupNoToChange == primaryGroupNo) {
-                            continue;
-                        }
-                        ArrayList<Node> nodesToChange = groupMap.get(groupNoToChange);
-
-                        for (Node node : nodesToChange) {
-                            node.setGroupNo(primaryGroupNo);
-                            primaryGroup.add(node);
-                        }
-                        nodesToChange.clear();
-                    }
+                    ansStr.append("Yes").append("\n");
                 }
-                continue;
             }
-            int ra = scanner.nextInt();
-            int ca = scanner.nextInt();
-            int rb = scanner.nextInt();
-            int cb = scanner.nextInt();
-            Node firstNode = nodes[ra][ca];
-            Node secondNode = nodes[rb][cb];
-            if(firstNode.getColor() == 'w' || secondNode.getColor() == 'w'){
-                ansStr.append("No").append("\n");
-                //System.out.println("No");
-                continue;
-            }
-            if (firstNode.getGroupNo() != secondNode.getGroupNo()) {
-                ansStr.append("No").append("\n");
-                //System.out.println("No");
-                continue;
-            }
-            ansStr.append("Yes").append("\n");
-            //System.out.println("Yes");
         }
         System.out.println(ansStr);
     }
-    public static class Node{
+
+    public static class Node {
         char color;
-        int groupNo;
+        int index;
         ArrayList<Node> incidentNodes;
 
-        public Node(char color){
+        public Node(char color, int index) {
             this.color = color;
+            this.index = index;
             this.incidentNodes = new ArrayList<>();
-            this.groupNo = -1;
-        }
-        public void addIncidentNode(Node node){
-            incidentNodes.add(node);
-
         }
 
-        public void setColor(char color){
+        public void setColor(char color) {
             this.color = color;
         }
-        public char getColor(){
+
+        public char getColor() {
             return color;
         }
-        public ArrayList<Node> getIncidentNodes(){
-            return incidentNodes;
+
+        public int getIndex() {
+            return index;
         }
-        public void setGroupNo(int groupNo){
-            this.groupNo = groupNo;
-        }
-        public int getGroupNo(){
-            return groupNo;
+
+        public void setIndex(int index) {
+            this.index = index;
         }
     }
 
+    public static class UnionFind {
+        private int[] parent;
+
+        public UnionFind(int n) {
+            parent = new int[n];
+            for (int i = 0; i < n; i++) {
+                parent[i] = i;
+            }
+        }
+
+        public int find(int x) {
+            if (parent[x] == x) {
+                return x;
+            }
+            return parent[x] = find(parent[x]);
+        }
+
+        public void union(int x, int y) {
+            int rootX = find(x);
+            int rootY = find(y);
+            if (rootX != rootY) {
+                parent[rootX] = rootY;
+            }
+        }
+
+        public boolean connected(int x, int y) {
+            return find(x) == find(y);
+        }
+    }
 }
