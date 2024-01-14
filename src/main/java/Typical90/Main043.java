@@ -100,13 +100,6 @@ public class Main043 {
                         i++;
                     }
 
-                    /*
-                    if(currentDistDown != lowerNode.getDistDown() || currentDistUp != lowerNode.getDistUp() || currentDistRight != lowerNode.getDistRight() || currentDistLeft != lowerNode.getDistLeft()){
-                        lowerNode.resetVisited();
-                        queue.add(lowerNode);
-                    }
-
-                     */
                 }
 
                 // go up
