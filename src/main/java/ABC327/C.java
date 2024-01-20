@@ -1,6 +1,5 @@
 package src.main.java.ABC327;
 
-import javax.print.attribute.HashAttributeSet;
 import java.util.HashSet;
 import java.util.Scanner;
 
